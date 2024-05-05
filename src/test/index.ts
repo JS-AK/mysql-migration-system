@@ -1,11 +1,3 @@
-import assert from "node:assert";
-import test from "node:test";
+import start01 from "./01/index.js";
 
-import { isTest } from "../lib/index.js";
-
-
-test("test", () => {
-  const check = isTest('TEST')
-
-  assert.equal(check, true);
-});
+await start01();

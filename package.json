@@ -1,7 +1,7 @@
 {
-  "name": "@js-ak/example-automatic-deploy-ts-app-to-npm-with-scope",
-  "version": "1.5.0",
-  "description": "example-automatic-deploy-ts-app-to-npm-with-scope",
+  "name": "@js-ak/mysql-migration-system",
+  "version": "0.0.1",
+  "description": "mysql-migration-system",
   "publishConfig": {
     "access": "public",
     "registry": "https://registry.npmjs.org/"
@@ -20,30 +20,37 @@
   ],
   "scripts": {
     "build": "tsc",
+    "lint": "eslint . --ext .ts",
     "test": "npm run build && node ./build/test/index.js"
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/JS-AK/example-automatic-deploy-ts-app-to-npm-with-scope.git"
+    "url": "git+https://github.com/JS-AK/mysql-migration-system.git"
   },
   "keywords": [
-    "example-automatic-deploy-ts-app-to-npm-with-scope"
+    "mysql-migration-system"
   ],
   "author": "JS-AK",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/JS-AK/example-automatic-deploy-ts-app-to-npm-with-scope/issues"
+    "url": "https://github.com/JS-AK/mysql-migration-system/issues"
   },
-  "homepage": "https://github.com/JS-AK/example-automatic-deploy-ts-app-to-npm-with-scope#readme",
+  "homepage": "https://github.com/JS-AK/mysql-migration-system#readme",
   "devDependencies": {
-    "@semantic-release/changelog": "^6.0.3",
-    "@semantic-release/commit-analyzer": "^11.1.0",
-    "@semantic-release/git": "^10.0.1",
-    "@semantic-release/github": "9.2.6",
-    "@semantic-release/npm": "11.0.3",
-    "@semantic-release/release-notes-generator": "^12.1.0",
-    "@types/node": "20.11.30",
-    "semantic-release": "23.0.2",
-    "typescript": "5.4.2"
+    "@semantic-release/changelog": "6.0.3",
+    "@semantic-release/commit-analyzer": "12.0.0",
+    "@semantic-release/git": "10.0.1",
+    "@semantic-release/github": "10.0.3",
+    "@semantic-release/npm": "12.0.0",
+    "@semantic-release/release-notes-generator": "13.0.0",
+    "@types/node": "20.12.8",
+    "@typescript-eslint/eslint-plugin": "7.8.0",
+    "@typescript-eslint/parser": "7.8.0",
+    "eslint": "8.57.0",
+    "eslint-plugin-sort-destructure-keys": "2.0.0",
+    "eslint-plugin-sort-exports": "0.9.1",
+    "mysql2": "3.9.7",
+    "semantic-release": "23.0.8",
+    "typescript": "5.4.5"
   }
 }
