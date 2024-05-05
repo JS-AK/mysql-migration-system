@@ -1,84 +1,35 @@
-# Example: Automatic Deployment of TypeScript App to npm with Scope
+# @js-ak/mysql-migration-system
 
-## Overview
-This guide outlines the steps to automatically deploy a TypeScript application to npm with a specific scope using GitHub Actions. By setting up this workflow, you can streamline the process of updating and publishing your package to npm, ensuring seamless integration with your development pipeline.
+![ci-cd](https://github.com/JS-AK/mysql-migration-system/actions/workflows/add-release-and-publish.yml/badge.svg)
+![publish-documentation](https://github.com/JS-AK/mysql-migration-system/actions/workflows/jekyll-gh-pages.yml/badge.svg)
 
-## Prerequisites
-Before proceeding, make sure you have the following:
+MySQL Migration System is a versatile tool designed to facilitate database schema management and migration control specifically for PostgreSQL databases.
 
-- Access to the GitHub repository containing your TypeScript project.
-- An npm account with permissions to publish packages to the desired scope.
-- GitHub Personal Access Token (GH_TOKEN) with the necessary permissions to push changes and trigger GitHub Actions.
-- npm token (NPM_TOKEN) with permissions to publish packages.
+## Installation
 
-## Workflow Setup
-To automate the deployment process, follow these steps:
+You can install the package via npm:
 
-1. **Create Secrets**: In your GitHub repository, navigate to "Settings" > "Secrets" and add the following secrets:
-    - `GH_TOKEN`: GitHub Personal Access Token.
-    - `NPM_TOKEN`: npm token.
+```
+npm install @js-ak/mysql-migration-system
+```
 
-2. **Configure GitHub Actions Workflow**: Create or modify your GitHub Actions workflow file (e.g., `.github/workflows/deploy.yml`) to define the deployment steps. Below is a sample workflow file:
+## Getting Started
 
-    ```yaml
-    name: make-release
+To quickly dive into MySQL Migration System, explore the provided examples at [examples directory](https://github.com/JS-AK/mysql-migration-system/tree/master/src/examples). These examples demonstrate how to connect to your PostgreSQL database and execute basic migration operations.
 
-    on:
-      push:
-        branches:
-          - master
+## Documentation
 
-    jobs:
+For detailed documentation, usage instructions, and API reference, please visit our [official documentation](https://js-ak.github.io/mysql-migration-system)
 
-      runner-job:
-        runs-on: ubuntu-latest
+## Features
 
-        steps:
-          - name: Check out repository code
-            uses: actions/checkout@v4
+* **Typescript**
+* **Simple Migration Workflow: Easily manage your PostgreSQL database schema with a straightforward migration system**
+* **Flexible Configuration: Configure migration settings to suit your specific project needs**
+* **Robust Error Handling: MySQL Migration System provides comprehensive error handling to ensure reliable database migrations**
 
-          - name: Install dependencies
-            run: npm ci
+## Contributing
 
-          - name: Run Tests
-            run: npm test
+Contributions are highly encouraged! If you have any suggestions, bug reports, or feature requests, please don't hesitate to open an [issue](https://github.com/JS-AK/mysql-migration-system/issues)
 
-      release:
-        name: Release
-        runs-on: ubuntu-latest
-        steps:
-
-          - name: Checkout
-            uses: actions/checkout@v4
-            with:
-              fetch-depth: 0
-              persist-credentials: false
-
-          - name: Setup Node.js
-            uses: actions/setup-node@v4
-            with:
-              node-version: '20'
-              registry-url: 'https://registry.npmjs.org'
-
-          - name: Install dependencies and build 🔧
-            run: npm ci && npm run build
-
-          - name: Make Release
-            run: npx semantic-release
-            env:
-              GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
-              NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
-    ```
-
-    This workflow triggers on pushes to the `main` branch. It installs dependencies, builds the project, and then publishes it to npm.
-
-3. **Commit and Push Changes**: Commit the workflow file changes to your repository and push them to GitHub. This action triggers the workflow defined in the YAML file.
-
-4. **Monitor Deployment**: Once the workflow is triggered, monitor its progress in the "Actions" tab of your GitHub repository. You should see the workflow executing the defined steps.
-
-5. **Verify Deployment**: After successful execution, verify that your TypeScript application has been deployed to npm with the specified scope.
-
-## Conclusion
-By implementing this GitHub Actions workflow, you've automated the process of deploying your TypeScript application to npm, saving time and ensuring consistency in your development workflow. With secrets management and continuous integration in place, you can confidently publish updates to your npm package with ease.
-
-Happy coding!
+This project is licensed under the MIT license. See [LICENSE](https://github.com/JS-AK/mysql-migration-system/tree/master/LICENSE) for details.
