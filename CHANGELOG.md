@@ -1,3 +1,10 @@
+# [1.1.0](https://github.com/JS-AK/mysql-migration-system/compare/v1.0.1...v1.1.0) (2024-06-22)
+
+
+### Features
+
+* updated deps ([a119aa1](https://github.com/JS-AK/mysql-migration-system/commit/a119aa10f39e646d881408bba927e42f278d0c7d))
+
 ## [1.0.1](https://github.com/JS-AK/mysql-migration-system/compare/v1.0.0...v1.0.1) (2024-05-05)
 
 
