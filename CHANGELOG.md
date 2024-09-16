@@ -1,3 +1,10 @@
+# [1.2.0](https://github.com/JS-AK/mysql-migration-system/compare/v1.1.0...v1.2.0) (2024-09-16)
+
+
+### Features
+
+* updated Up and Down func ([6f58c6e](https://github.com/JS-AK/mysql-migration-system/commit/6f58c6e956f6965131c29777bc8a86863b58f846))
+
 # [1.1.0](https://github.com/JS-AK/mysql-migration-system/compare/v1.0.1...v1.1.0) (2024-06-22)
 
 
