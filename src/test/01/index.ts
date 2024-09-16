@@ -19,7 +19,16 @@ export default async () => {
 	return test("01 test", async () => {
 		const pool = mysql.createPool(creds);
 
+		await Down.start(pool, {
+			database: "test-base",
+			isNeedCleanupAll: true,
+			logger: false,
+			migrationsTableName: "migration_control",
+			pathToSQL: path.resolve(process.cwd(), "src", "test", "01", "migrations", "sql"),
+		});
+
 		await Up.start(pool, {
+			logger: false,
 			migrationsTableName: "migration_control",
 			pathToSQL: path.resolve(process.cwd(), "src", "test", "01", "migrations", "sql"),
 		});
@@ -29,6 +38,7 @@ export default async () => {
 		assert.equal(rows.length, 2);
 
 		await Down.start(pool, {
+			logger: false,
 			migrationsTableName: "migration_control",
 			pathToSQL: path.resolve(process.cwd(), "src", "test", "01", "migrations", "sql"),
 		});

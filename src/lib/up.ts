@@ -1,11 +1,11 @@
-/* eslint-disable no-console */
-
 import fs from "node:fs";
 import path from "node:path";
 import { pathToFileURL } from "node:url";
 
 import * as Types from "./types/index.js";
-import { walk } from "./helpers.js";
+
+import * as Helpers from "./helpers.js";
+import { Logger, TLogger } from "./logger.js";
 
 type TFile = { fileName: string; filePath: string; timestamp: number; type: "sql" | "js"; };
 
@@ -13,17 +13,30 @@ type TFile = { fileName: string; filePath: string; timestamp: number; type: "sql
  * @experimental
  */
 export async function start(
-	pool: Types.Pool,
+	client: Types.Pool | Types.PoolConnection | Types.Connection,
 	settings: {
+		migrationsTableName: string;
+		logger?: TLogger | false;
 		pathToSQL?: string;
 		pathToJS?: string;
-		migrationsTableName: string;
 	},
 ) {
+	const isLoggerEnabled = !(settings.logger === false);
+
+	const logger = new Logger(
+		settings.logger
+			? settings.logger
+			// eslint-disable-next-line no-console
+			: { error: console.error, info: console.log },
+		isLoggerEnabled,
+	);
+
+	const migrationsTableName = `\`${settings.migrationsTableName}\``;
+
 	try {
 		const files: TFile[] = [];
-		const jsFiles = settings.pathToJS ? await walk(settings.pathToJS) : [];
-		const sqlFiles = settings.pathToSQL ? await walk(settings.pathToSQL) : [];
+		const jsFiles = settings.pathToJS ? await Helpers.walk(settings.pathToJS) : [];
+		const sqlFiles = settings.pathToSQL ? await Helpers.walk(settings.pathToSQL) : [];
 
 		for (const file of sqlFiles) {
 			const fileNameBase = path.parse(file).base;
@@ -64,14 +77,14 @@ export async function start(
 		try {
 			migrations
 				.push(
-					...(await pool.query<Types.RowDataPacket<{ title: string; }>>(`SELECT title FROM ${settings.migrationsTableName}`))[0]
+					...(await client.query<Types.RowDataPacket<{ title: string; }>>(`SELECT title FROM ${migrationsTableName}`))[0]
 						.map((e: { title: string; }) => e.title),
 				);
 		} catch (err) {
 			error = true;
 
-			await pool.query(`
-				CREATE TABLE ${settings.migrationsTableName}(
+			await client.query(`
+				CREATE TABLE ${migrationsTableName}(
 				  id                              BIGINT NOT NULL AUTO_INCREMENT PRIMARY KEY,
 				  title                           VARCHAR(255) NOT NULL UNIQUE,
 				  created_at                      DATETIME DEFAULT (UTC_TIMESTAMP),
@@ -87,18 +100,18 @@ export async function start(
 				if (error) {
 					const sql = fs.readFileSync(filePath).toString();
 
-					await pool.query(sql);
-					await pool.query(`INSERT INTO ${settings.migrationsTableName} (title) VALUES ('${fileName}')`);
+					await client.query(sql);
+					await client.query(`INSERT INTO ${migrationsTableName} (title) VALUES ('${fileName}')`);
 
-					console.log(`${fileName} done!`);
+					logger.info(`${fileName} done!`);
 				} else {
 					if (!migrations.includes(fileName)) {
 						const sql = fs.readFileSync(filePath).toString();
 
-						await pool.query(sql);
-						await pool.query(`INSERT INTO ${settings.migrationsTableName} (title) VALUES ('${fileName}')`);
+						await client.query(sql);
+						await client.query(`INSERT INTO ${migrationsTableName} (title) VALUES ('${fileName}')`);
 
-						console.log(`${fileName} done!`);
+						logger.info(`${fileName} done!`);
 					}
 				}
 			} else if (file.type === "js") {
@@ -106,23 +119,25 @@ export async function start(
 
 				if (!migrations.includes(fileName)) {
 					const file = await import(pathToFileURL(filePath).href);
-					const { error, message } = await file.up(pool);
+					const { error, message } = await file.up(client);
 
 					if (!error) {
-						await pool.query(`INSERT INTO ${settings.migrationsTableName} (title) VALUES ('${fileName}')`);
-						console.log(`${fileName} done!`);
+						await client.query(`INSERT INTO ${migrationsTableName} (title) VALUES ('${fileName}')`);
+						logger.info(`${fileName} done!`);
 					} else {
-						console.error(`${fileName} not done!`);
-						console.error(message);
+						logger.error(`${fileName} not done!`);
+						logger.error(message);
 
 						throw new Error(message);
 					}
 				}
 			}
 		}
-		console.log("All done!");
+		logger.info("All done!");
 	} catch (error) {
-		console.error(error);
+		const message = error instanceof Error ? error.message : "unknown error";
+
+		logger.error(message);
 
 		throw error;
 	}
