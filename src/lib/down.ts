@@ -1,100 +1,81 @@
-/* eslint-disable no-console */
-
 import fs from "node:fs";
 
 import * as Types from "./types/index.js";
-import { walk } from "./helpers.js";
+
+import * as Helpers from "./helpers.js";
+import { Logger, TLogger } from "./logger.js";
 
 /**
  * @experimental
  */
 export async function start(
-	pool: Types.Pool,
+	client: Types.Pool | Types.PoolConnection | Types.Connection,
 	settings: {
+		isNeedCleanupAll?: boolean;
+		logger?: TLogger | false;
 		migrationsTableName: string;
-		// isNeedCleanupAll?: boolean;
+		database?: string;
 		pathToSQL: string;
 	},
 ) {
+	const isLoggerEnabled = !(settings.logger === false);
+
+	const logger = new Logger(
+		settings.logger
+			? settings.logger
+			// eslint-disable-next-line no-console
+			: { error: console.error, info: console.log },
+		isLoggerEnabled,
+	);
+
+	const migrationsTableName = `\`${settings.migrationsTableName}\``;
+
 	try {
-		const sqlFiles = (await walk(settings.pathToSQL)).reverse();
+		if (settings.isNeedCleanupAll) {
+			if (!settings.database) throw new Error("Database is required");
 
-		for (const file of sqlFiles) {
-			const sql = fs.readFileSync(file).toString();
+			const database = `\`${settings.database}\``;
 
-			const tables = sql
-				.toLowerCase()
-				.replace(/[^a-z0-9,()_; ]/g, " ")
-				.replace(/  +/g, " ")
-				.trim()
-				.split("create table");
+			const query = `DROP DATABASE IF EXISTS ${database}; CREATE DATABASE ${database}; USE ${database};`;
 
-			tables.shift();
+			await client.query(query);
+			logger.info(`${query} done!`);
+		} else {
+			const sqlFiles = (await Helpers.walk(settings.pathToSQL)).reverse();
 
-			if (tables) {
-				for (const table of tables) {
-					const t = table.trim().split("(")[0]?.trim();
+			let queryResult = "";
 
-					if (!t) continue;
+			for (const file of sqlFiles) {
+				const sql = fs.readFileSync(file).toString();
+				const result = Helpers.search(sql);
 
-					await pool.query(`DROP TABLE IF EXISTS ${t} CASCADE`);
-					console.log(`DROP TABLE ${t} done!`);
+				queryResult += result;
+			}
+
+			if (queryResult) {
+				await client.query(queryResult);
+
+				const chunks = queryResult.split(";").filter((e) => e);
+
+				for (const chunk of chunks) {
+					logger.info(`${chunk} done!`);
 				}
 			}
 
-			const types = sql
-				.toLowerCase()
-				.replace(/[^a-z0-9,()_; ]/g, " ")
-				.replace(/  +/g, " ")
-				.trim()
-				.split("create type");
+			{
+				const query = `DROP TABLE IF EXISTS ${migrationsTableName} CASCADE`;
 
-			types.shift();
-
-			if (types) {
-				for (const type of types) {
-					const t = type.trim().split("(")[0]?.trim();
-
-					if (!t) continue;
-
-					const v = t.split(" as ");
-
-					if (v.length > 1) {
-						console.log(`DROP TYPE ${v[0]} done!`);
-						await pool.query(`DROP TYPE IF EXISTS ${v[0]} CASCADE`);
-					} else {
-						console.log(`DROP TYPE ${t[0]} done!`);
-						await pool.query(`DROP TYPE IF EXISTS ${t[0]} CASCADE`);
-					}
-				}
-			}
-
-			const sequences = sql
-				.toLowerCase()
-				.replace(/[^a-z0-9,()_; ]/g, " ")
-				.replace(/  +/g, " ")
-				.trim()
-				.split("create sequence");
-
-			sequences.shift();
-
-			if (sequences) {
-				for (const sequence of sequences) {
-					const s = sequence.trim().split(" ")[0]?.trim();
-
-					if (!s) continue;
-
-					await pool.query(`DROP SEQUENCE IF EXISTS ${s} CASCADE`);
-					console.log(`DROP SEQUENCE ${s} done!`);
-				}
+				await client.query(query);
+				logger.info(`${query} done!`);
 			}
 		}
 
-		await pool.query(`DROP TABLE IF EXISTS ${settings.migrationsTableName} CASCADE`);
-		console.log(`DROP TABLE ${settings.migrationsTableName} done!`);
-
-		console.log("All done!");
+		logger.info("All done!");
 	} catch (error) {
-		return console.log(error);
+		const message = error instanceof Error ? error.message : "unknown error";
+
+		logger.error(message);
+
+		throw error;
 	}
 }
