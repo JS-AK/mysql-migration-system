@@ -1,3 +1,10 @@
+# [1.3.0](https://github.com/JS-AK/mysql-migration-system/compare/v1.2.0...v1.3.0) (2025-08-05)
+
+
+### Features
+
+* added cjs support ([219df05](https://github.com/JS-AK/mysql-migration-system/commit/219df0565d551c721dea1fd6ae06958a337e67e0))
+
 # [1.2.0](https://github.com/JS-AK/mysql-migration-system/compare/v1.1.0...v1.2.0) (2024-09-16)
 
 
